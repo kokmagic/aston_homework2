@@ -1,24 +1,11 @@
 package mapper;
 
-import dto.EmployeeDTO;
+import dto.EmployeeDto;
 import entity.Employee;
+import org.mapstruct.Mapper;
 
-public class EmployeeMapper implements Mapper<Employee, EmployeeDTO> {
-
-    @Override
-    public Employee toEntity(EmployeeDTO dto) {
-        Employee employee = new Employee();
-        employee.setId(dto.getId());
-        employee.setName(dto.getName());
-        return employee;
-    }
-
-    @Override
-    public EmployeeDTO toDto(Employee employee) {
-        return EmployeeDTO.builder()
-                .id(employee.getId())
-                .name(employee.getName())
-                .build();
-    }
+@Mapper
+public interface EmployeeMapper {
+    EmployeeDto toDto (Employee employee);
+    Employee fromDto (EmployeeDto employeeDto);
 }
-

@@ -1,12 +1,15 @@
-package entity;
+package dto;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
-@Data
-public class Employee {
-    private Long id;
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class EmployeeDto {
     private String name;
     private List<Long> debtorsIds;
     private List<Long> officesIds;

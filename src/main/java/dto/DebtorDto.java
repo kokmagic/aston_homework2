@@ -7,7 +7,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EmployeeDTO {
-    private Long id;
+public class DebtorDto {
     private String name;
+    private String address;
+    private int debtAmount;
+    private Long employeeId;
 }

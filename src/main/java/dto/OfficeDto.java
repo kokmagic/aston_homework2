@@ -2,14 +2,14 @@ package dto;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DebtorDTO {
-    private Long id;
-    private String name;
+public class OfficeDto {
     private String address;
-    private int debtAmount;
+    private List<Long> employeesIds;
 }
