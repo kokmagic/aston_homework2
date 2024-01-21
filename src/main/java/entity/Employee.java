@@ -1,13 +1,18 @@
 package entity;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class Employee {
     private Long id;
     private String name;
-    private List<Long> debtorsIds;
-    private List<Long> officesIds;
+    private List<Integer> debtorsIds;
+    private List<Integer> officesIds;
 }

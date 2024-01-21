@@ -14,10 +14,10 @@ public class DebtorRepository implements Repository<Debtor> {
 
     private static final String GET_ALL_DEBTORS_SQL = "SELECT * FROM Debtors";
     private static final String GET_ONE_DEBTOR_SQL = "SELECT * FROM Debtors WHERE id = ?";
-    private static final String UPDATE_DEBTOR_SQL = "UPDATE Debtors SET name=?, address=?, debtAmount=?, workerId=? WHERE id=?";
+    private static final String UPDATE_DEBTOR_SQL = "UPDATE Debtors SET name=?, address=?, debt_amount=?, employee_id=? WHERE id=?";
     private static final String DELETE_DEBTOR_SQL = "DELETE FROM Debtors WHERE id=?";
-    private static final String SAVE_DEBTOR_SQL = "INSERT INTO Debtors (name, address, debtAmount, worker_id) VALUES (?, ?, ?, ?)";
-    private static final String GET_DEBTOR_ID_BY_EMPLOYEE_ID_SQL = "SELECT id FROM Debtors WHERE workerId = ?";
+    private static final String SAVE_DEBTOR_SQL = "INSERT INTO Debtors (name, address, debt_amount, employee_id) VALUES (?, ?, ?, ?)";
+    private static final String GET_DEBTOR_ID_BY_EMPLOYEE_ID_SQL = "SELECT id FROM Debtors WHERE employee_id = ?";
 
     public DebtorRepository() {
         this.connectionPool = new ConnectionPool();
@@ -66,7 +66,7 @@ public class DebtorRepository implements Repository<Debtor> {
             preparedStatement.setString(1, updatedElement.getName());
             preparedStatement.setString(2, updatedElement.getAddress());
             preparedStatement.setInt(3, updatedElement.getDebtAmount());
-            preparedStatement.setLong(4, updatedElement.getEmployeeId());
+            preparedStatement.setInt(4, updatedElement.getEmployeeId());
             preparedStatement.setLong(5, id);
 
             int rowsAffected = preparedStatement.executeUpdate();
@@ -97,21 +97,13 @@ public class DebtorRepository implements Repository<Debtor> {
             preparedStatement.setString(1, debtor.getName());
             preparedStatement.setString(2, debtor.getAddress());
             preparedStatement.setInt(3, debtor.getDebtAmount());
-            Long employeeId = debtor.getEmployeeId();
-            if (employeeId != null) {
-                preparedStatement.setLong(4, employeeId);
-            } else {
-                preparedStatement.setNull(4, Types.BIGINT);
-            }
-//            preparedStatement.setLong(4, debtor.getEmployeeId());
+            preparedStatement.setInt(4, debtor.getEmployeeId());
 
-            int rowsAffected = preparedStatement.executeUpdate();
-            if (rowsAffected > 0) {
-                ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
-                if (generatedKeys.next()) {
-                    debtor.setId(generatedKeys.getLong(1));
-                    return debtor;
-                }
+            preparedStatement.executeUpdate();
+            ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                debtor.setId(generatedKeys.getLong(1));
+                return debtor;
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -119,15 +111,15 @@ public class DebtorRepository implements Repository<Debtor> {
         return null;
     }
 
-    public List<Long> findDebtorIdsByEmployeeId(Long employeeId) {
-        List<Long> debtorIds = new ArrayList<>();
+    public List<Integer> findDebtorIdsByEmployeeId(Long employeeId) {
+        List<Integer> debtorIds = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(GET_DEBTOR_ID_BY_EMPLOYEE_ID_SQL)) {
 
             preparedStatement.setLong(1, employeeId);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                debtorIds.add(resultSet.getLong("id"));
+                debtorIds.add(resultSet.getInt("id"));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -140,8 +132,8 @@ public class DebtorRepository implements Repository<Debtor> {
         debtor.setId(resultSet.getLong("id"));
         debtor.setName(resultSet.getString("name"));
         debtor.setAddress(resultSet.getString("address"));
-        debtor.setDebtAmount(resultSet.getInt("debtAmount"));
-        debtor.setEmployeeId(resultSet.getLong("employeeId"));
+        debtor.setDebtAmount(resultSet.getInt("debt_amount"));
+        debtor.setEmployeeId(resultSet.getInt("employee_id"));
         return debtor;
     }
 }

@@ -4,6 +4,7 @@ import dto.DebtorDto;
 import entity.Debtor;
 import lombok.RequiredArgsConstructor;
 import mapper.DebtorMapper;
+import mapper.DebtorMapperImpl;
 import repository.impl.DebtorRepository;
 import service.Service;
 
@@ -15,6 +16,11 @@ public class DebtorService implements Service<DebtorDto> {
 
     private final DebtorRepository debtorRepository;
     private final DebtorMapper debtorMapper;
+
+    public DebtorService(){
+        debtorMapper = new DebtorMapperImpl();
+        debtorRepository = new DebtorRepository();
+    }
 
     @Override
     public List<DebtorDto> getAll() {

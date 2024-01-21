@@ -1,12 +1,17 @@
 package entity;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class Office {
     private Long id;
     private String address;
-    private List<Long> employeesIds;
+    private List<Integer> employeesIds;
 }

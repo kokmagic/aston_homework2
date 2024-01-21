@@ -1,7 +1,5 @@
 package service;
 
-import dto.DebtorDto;
-
 import java.util.List;
 
 public interface Service<T> {

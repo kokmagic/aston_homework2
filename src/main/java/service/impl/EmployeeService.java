@@ -4,6 +4,7 @@ import dto.EmployeeDto;
 import entity.Employee;
 import lombok.RequiredArgsConstructor;
 import mapper.EmployeeMapper;
+import mapper.EmployeeMapperImpl;
 import repository.impl.EmployeeRepository;
 import service.Service;
 
@@ -15,6 +16,11 @@ public class EmployeeService implements Service<EmployeeDto> {
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
+
+    public EmployeeService(){
+        employeeMapper = new EmployeeMapperImpl();
+        employeeRepository = new EmployeeRepository();
+    }
 
     @Override
     public List<EmployeeDto> getAll() {

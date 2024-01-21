@@ -11,6 +11,6 @@ import java.util.List;
 @Builder
 public class EmployeeDto {
     private String name;
-    private List<Long> debtorsIds;
-    private List<Long> officesIds;
+    private List<Integer> debtorsIds;
+    private List<Integer> officesIds;
 }

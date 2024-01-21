@@ -4,6 +4,7 @@ import dto.OfficeDto;
 import entity.Office;
 import lombok.RequiredArgsConstructor;
 import mapper.OfficeMapper;
+import mapper.OfficeMapperImpl;
 import repository.impl.OfficeRepository;
 import service.Service;
 
@@ -15,6 +16,11 @@ public class OfficeService implements Service<OfficeDto> {
 
     private final OfficeRepository officeRepository;
     private final OfficeMapper officeMapper;
+
+    public OfficeService(){
+        officeMapper = new OfficeMapperImpl();
+        officeRepository = new OfficeRepository();
+    }
 
     @Override
     public List<OfficeDto> getAll() {

@@ -1,12 +1,11 @@
 package servlets;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dto.DebtorDto;
-import entity.Debtor;
-import mapper.DebtorMapper;
+import dto.OfficeDto;
+import mapper.OfficeMapper;
 import org.mapstruct.factory.Mappers;
-import repository.impl.DebtorRepository;
-import service.impl.DebtorService;
+import repository.impl.OfficeRepository;
+import service.impl.OfficeService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -19,40 +18,41 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-@WebServlet("/debtors/*")
-public class DebtorServlet extends HttpServlet {
-    private final DebtorService debtorService;
+@WebServlet("/offices/*")
+public class OfficeServlet extends HttpServlet {
+
+    private final OfficeService officeService;
     private final ObjectMapper objectMapper;
 
-    public DebtorServlet() {
-        this.debtorService = new DebtorService(new DebtorRepository(), Mappers.getMapper(DebtorMapper.class));
+    public OfficeServlet() {
+        this.officeService = new OfficeService(new OfficeRepository(), Mappers.getMapper(OfficeMapper.class));
         this.objectMapper = new ObjectMapper();
     }
 
-    public DebtorServlet(DebtorService debtorService) {
-        this.debtorService = debtorService;
+    public OfficeServlet(OfficeService officeService) {
+        this.officeService = officeService;
         this.objectMapper = new ObjectMapper();
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        DebtorDto debtorDto = readRequestObject(request, DebtorDto.class);
-        DebtorDto createdDebtor = debtorService.create(debtorDto);
-        sendResponse(response, HttpServletResponse.SC_CREATED, createdDebtor);
+        OfficeDto officeDto = readRequestObject(request, OfficeDto.class);
+        OfficeDto createdOffice = officeService.create(officeDto);
+        sendResponse(response, HttpServletResponse.SC_CREATED, createdOffice);
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
         if (pathInfo == null || pathInfo.equals("/")) {
-            List<DebtorDto> allDebtors = debtorService.getAll();
-            sendResponse(response, HttpServletResponse.SC_OK, allDebtors);
+            List<OfficeDto> allOffices = officeService.getAll();
+            sendResponse(response, HttpServletResponse.SC_OK, allOffices);
         } else {
-            String debtorIdString = pathInfo.substring(1); // убираем первый слеш
-            Long debtorId = Long.parseLong(debtorIdString);
-            DebtorDto debtor = debtorService.getById(debtorId);
-            if (debtor != null) {
-                sendResponse(response, HttpServletResponse.SC_OK, debtor);
+            String officeIdString = pathInfo.substring(1);
+            Long officeId = Long.parseLong(officeIdString);
+            OfficeDto office = officeService.getById(officeId);
+            if (office != null) {
+                sendResponse(response, HttpServletResponse.SC_OK, office);
             } else {
                 sendResponse(response, HttpServletResponse.SC_NOT_FOUND, null);
             }
@@ -63,11 +63,11 @@ public class DebtorServlet extends HttpServlet {
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
         if (pathInfo != null && !pathInfo.equals("/")) {
-            String debtorIdString = pathInfo.substring(1); // убираем первый слеш
-            Long debtorId = Long.parseLong(debtorIdString);
+            String officeIdString = pathInfo.substring(1);
+            Long officeId = Long.parseLong(officeIdString);
 
-            DebtorDto updatedDebtor = readRequestObject(request, DebtorDto.class);
-            DebtorDto result = debtorService.update(debtorId, updatedDebtor);
+            OfficeDto updatedOffice = readRequestObject(request, OfficeDto.class);
+            OfficeDto result = officeService.update(officeId, updatedOffice);
             if (result != null) {
                 sendResponse(response, HttpServletResponse.SC_OK, result);
             } else {
@@ -82,10 +82,10 @@ public class DebtorServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
         if (pathInfo != null && !pathInfo.equals("/")) {
-            String debtorIdString = pathInfo.substring(1); // убираем первый слеш
-            Long debtorId = Long.parseLong(debtorIdString);
+            String officeIdString = pathInfo.substring(1); // убираем первый слеш
+            Long officeId = Long.parseLong(officeIdString);
 
-            boolean deleted = debtorService.remove(debtorId);
+            boolean deleted = officeService.remove(officeId);
             if (deleted) {
                 sendResponse(response, HttpServletResponse.SC_NO_CONTENT, null);
             } else {

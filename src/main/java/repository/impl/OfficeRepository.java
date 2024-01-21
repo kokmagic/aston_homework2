@@ -17,7 +17,10 @@ public class OfficeRepository implements Repository<Office> {
     private static final String UPDATE_OFFICE_SQL = "UPDATE Offices SET address=? WHERE id=?";
     private static final String DELETE_OFFICE_SQL = "DELETE FROM Offices WHERE id=?";
     private static final String SAVE_OFFICE_SQL = "INSERT INTO Offices (address) VALUES (?)";
-    private static final String GET_OFFICE_ID_BY_EMPLOYEE_ID = "SELECT office_id FROM OfficeWorkerRelation WHERE worker_id = ?";
+    private static final String GET_OFFICE_ID_BY_EMPLOYEE_ID = "SELECT office_id FROM OfficeWorkerRelation WHERE employee_id = ?";
+    private static final String DELETE_OFFICE_RELATION_SQL = "DELETE FROM OfficeWorkerRelation WHERE office_id=?";
+    private static final String INSERT_OFFICE_RELATION_SQL = "INSERT INTO OfficeWorkerRelation (office_id, employee_id) VALUES (?, ?)";
+
     public OfficeRepository() {
         this.connectionPool = new ConnectionPool();
     }
@@ -60,28 +63,62 @@ public class OfficeRepository implements Repository<Office> {
 
     @Override
     public Office update(Long id, Office updatedElement) {
-        try (Connection connection = connectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_OFFICE_SQL)) {
-            preparedStatement.setString(1, updatedElement.getAddress());
-            preparedStatement.setLong(2, id);
+        try (Connection connection = connectionPool.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                try (PreparedStatement updateOfficeStatement = connection.prepareStatement(UPDATE_OFFICE_SQL)) {
+                    updateOfficeStatement.setString(1, updatedElement.getAddress());
+                    updateOfficeStatement.setLong(2, id);
+                    updateOfficeStatement.executeUpdate();
+                }
 
-            int rowsAffected = preparedStatement.executeUpdate();
-            if (rowsAffected > 0) {
+                try (PreparedStatement deleteRelationsStatement = connection.prepareStatement(DELETE_OFFICE_RELATION_SQL)) {
+                    deleteRelationsStatement.setLong(1, id);
+                    deleteRelationsStatement.executeUpdate();
+                }
+
+                try (PreparedStatement insertRelationsStatement = connection.prepareStatement(INSERT_OFFICE_RELATION_SQL)) {
+                    for (int employeeId : updatedElement.getEmployeesIds()) {
+                        insertRelationsStatement.setLong(1, id);
+                        insertRelationsStatement.setInt(2, employeeId);
+                        insertRelationsStatement.executeUpdate();
+                    }
+                }
+                connection.commit();
                 return updatedElement;
+            } catch (SQLException e) {
+                connection.rollback();
+                throw new RuntimeException(e);
+            } finally {
+                connection.setAutoCommit(true);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return null;
     }
 
     @Override
     public boolean remove(Long id) {
-        try (Connection connection = connectionPool.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_OFFICE_SQL)) {
-            preparedStatement.setLong(1, id);
-            int rowsAffected = preparedStatement.executeUpdate();
-            return rowsAffected > 0;
+        try (Connection connection = connectionPool.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                try (PreparedStatement deleteRelationsStatement = connection.prepareStatement(DELETE_OFFICE_RELATION_SQL)) {
+                    deleteRelationsStatement.setLong(1, id);
+                    deleteRelationsStatement.executeUpdate();
+                }
+
+                try (PreparedStatement deleteOfficeStatement = connection.prepareStatement(DELETE_OFFICE_SQL)) {
+                    deleteOfficeStatement.setLong(1, id);
+                    int rowsAffected = deleteOfficeStatement.executeUpdate();
+                    connection.commit();
+                    return rowsAffected > 0;
+                }
+            } catch (SQLException e) {
+                connection.rollback();
+                throw new RuntimeException(e);
+            } finally {
+                connection.setAutoCommit(true);
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -92,29 +129,27 @@ public class OfficeRepository implements Repository<Office> {
              PreparedStatement preparedStatement = connection.prepareStatement(SAVE_OFFICE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, office.getAddress());
 
-            int rowsAffected = preparedStatement.executeUpdate();
-            if (rowsAffected > 0) {
-                ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+            preparedStatement.executeUpdate();
+            ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     office.setId(generatedKeys.getLong(1));
                     return office;
                 }
-            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
         return null;
     }
 
-    public List<Long> findOfficeIdsByEmployeeId(Long employeeId) {
-        List<Long> officeIds = new ArrayList<>();
+    public List<Integer> findOfficeIdsByEmployeeId(Long employeeId) {
+        List<Integer> officeIds = new ArrayList<>();
         try (Connection connection = connectionPool.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(GET_OFFICE_ID_BY_EMPLOYEE_ID)) {
 
             preparedStatement.setLong(1, employeeId);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                officeIds.add(resultSet.getLong("office_id"));
+                officeIds.add(resultSet.getInt("office_id"));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -128,7 +163,7 @@ public class OfficeRepository implements Repository<Office> {
         office.setAddress(resultSet.getString("address"));
 
         EmployeeRepository employeeRepository = new EmployeeRepository(connectionPool);
-        List<Long> employeeIds = employeeRepository.findEmployeeIdsByOfficeId(office.getId());
+        List<Integer> employeeIds = employeeRepository.findEmployeeIdsByOfficeId(office.getId());
         office.setEmployeesIds(employeeIds);
         return office;
     }

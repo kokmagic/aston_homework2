@@ -11,5 +11,5 @@ import java.util.List;
 @Builder
 public class OfficeDto {
     private String address;
-    private List<Long> employeesIds;
+    private List<Integer> employeesIds;
 }
